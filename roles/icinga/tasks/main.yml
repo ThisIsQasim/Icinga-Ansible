@@ -1,0 +1,36 @@
+---
+- name: Install Icinga repo
+  yum:
+    name: https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    state: present
+
+- name: Enable epel repo
+  yum:
+    name: epel-release
+    state: latest
+
+- name: Install Icinga2
+  yum:
+    name: icinga2
+    state: present
+
+- name: Install Icinga plugins
+  package:                                                                      
+    name: "{{item.name}}"
+    state: "{{item.state}}"
+  with_items:
+    - { name: nagios-plugins-all, state: latest }
+    - { name: icinga2-ido-mysql, state: present }
+    - { name: icinga-idoutils-libdbi-mysql, state: present }
+    - { name: icingacli, state: present }
+    - { name: icingaweb2, state: present }
+    - { name: php-cli, state: latest }
+    - { name: php-pear, state: latest }
+    - { name: php-xmlrpc, state: latest }
+    - { name: php-xsl, state: latest }
+    - { name: php-pdo, state: latest }
+    - { name: php-soap, state: latest }
+    - { name: php-gd, state: latest }
+    - { name: php-ldap, state: latest }
+    - { name: php-mysql, state: latest }
+    - { name: libselinux-python, state: latest }

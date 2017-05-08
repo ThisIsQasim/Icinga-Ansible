@@ -1,0 +1,63 @@
+---
+- name: Install MySQL
+  package:
+    name: "{{item.name}}"
+    state: "{{item.state}}"
+  with_items:
+    - { name: mariadb-server, state: latest }
+    - { name: MySQL-python, state: present }
+
+- name: MySQL service
+  service:
+    name: mariadb
+    enabled: yes
+    state: running
+
+- name: Create database user
+  mysql_user: user=icinga password=shit priv=*.*:ALL state=present
+
+- name: Create database1
+  mysql_db: db=icingadb0 state=present
+
+#- name: Create database2
+#  mysql_db: db=icingadb state=present
+
+- name: Change user
+  lineinfile:
+    dest: "/etc/icinga2/features-enabled/ido-mysql.conf"
+    state: present
+    regexp: '^  //user = "icinga"'
+    insertafter: '^object IdoMysqlConnection "ido-mysql" {'
+    line: '  user = "icinga"'
+
+- name: Change password
+  lineinfile:
+    dest: "/etc/icinga2/features-enabled/ido-mysql.conf"
+    state: present
+    regexp: '^  //password = "icinga"'
+    insertafter: '^  user = "icinga"'
+    line: '  password = "shit"'
+
+- name: Change host
+  lineinfile:
+    dest: "/etc/icinga2/features-enabled/ido-mysql.conf"
+    state: present
+    regexp: '^  //host = "localhost"'
+    insertafter: '^  password = "shit"'
+    line: '  host = "localhost"'
+
+- name: Change database
+  lineinfile:
+    dest: "/etc/icinga2/features-enabled/ido-mysql.conf"
+    state: present
+    regexp: '^  //database = "icinga"'
+    insertafter: '^  host = "localhost"'
+    line: '  database = "icingadb"'
+
+- name: Import Icinga DB
+  mysql_db:
+    state: import
+    name: icingadb
+    login_user: icinga
+    login_password: shit
+    target: /usr/share/icinga2-ido-mysql/schema/mysql.sql

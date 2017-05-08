@@ -1,0 +1,42 @@
+---
+- name: Start Icinga2
+  service:
+    name: icinga2
+    enabled: yes
+    state: running
+
+- name: change permissions on config directory
+  shell:
+    usermod -aG icingaweb2 apache
+
+- name: allow SeLinux
+  shell:
+    chcon -R -t httpd_sys_rw_content_t /etc/icingaweb2/
+
+- name: change php timezone
+  lineinfile:
+    dest: "/etc/php.ini"
+    regexp: '^;date.timezone ='
+    line: 'date.timezone = "Asia/Karachi"'
+#  shell:
+#    sed -i 's:;date.timezone =:date.timezone = "Asia/Karachi":g' /etc/php.ini
+
+- name: Enable IDO
+  shell: icinga2 feature enable ido-mysql && icinga2 feature enable command
+
+- name: Genrate Token
+  shell: icingacli setup config directory --group icingaweb2 && icingacli setup token create
+  register: icinga2
+- debug: var=icinga2.stdout_lines
+
+- name: Start apache
+  service:
+    name: httpd
+    enabled: yes
+    state: restarted
+
+- name: Start apache
+  service:
+    name: icinga2
+    enabled: yes
+    state: restarted

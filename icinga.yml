@@ -1,0 +1,6 @@
+- hosts: lab
+  become: true
+  roles:
+    - icinga
+    - icinga/mysql
+    - icinga/setup
